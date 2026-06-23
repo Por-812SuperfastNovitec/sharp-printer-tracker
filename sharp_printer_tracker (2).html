@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sharp Printer Repair Tracker — Fujiseal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --sharp-red: #CC0000;
+    --sharp-dark: #1A1A2E;
+    --fuji-blue: #003087;
+    --accent: #E8F0FE;
+    --bg: #F5F6FA;
+    --card: #FFFFFF;
+    --border: #E0E4EF;
+    --text: #1A1A2E;
+    --muted: #6B7280;
+    --success: #059669;
+    --warning: #D97706;
+    --info: #2563EB;
+    --danger: #DC2626;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Noto Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    background: linear-gradient(135deg, var(--sharp-dark) 0%, #16213E 100%);
+    padding: 0;
+    border-bottom: 3px solid var(--sharp-red);
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .logo-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.15);
+    min-width: 90px;
+    min-height: 44px;
+  }
+  .logo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+  }
+  .logo-placeholder .brand {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #FFF;
+  }
+  .logo-placeholder .sub {
+    font-size: 8px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .logo-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+  }
+  .header-title {
+    color: #FFF;
+  }
+  .header-title h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFF;
+    letter-spacing: 0.3px;
+  }
+  .header-title p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+  }
+  .header-badge {
+    background: var(--sharp-red);
+    color: #FFF;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── Upload logo zone ─── */
+  .logo-upload-tip {
+    background: rgba(204,0,0,0.08);
+    border: 1px dashed rgba(204,0,0,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .logo-upload-tip:hover { background: rgba(204,0,0,0.15); }
+  #logoInput { display: none; }
+  .logo-img { max-height: 40px; max-width: 100px; object-fit: contain; }
+
+  /* ─── Nav Tabs ─── */
+  .nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn:hover { color: var(--sharp-red); }
+  .tab-btn.active { color: var(--sharp-red); border-bottom-color: var(--sharp-red); }
+  .tab-icon { font-size: 15px; }
+
+  /* ─── Main Layout ─── */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    background: var(--sharp-red);
+    border-radius: 2px;
+  }
+
+  /* ─── Stat Cards ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-card.red .stat-num { color: var(--sharp-red); }
+  .stat-card.amber .stat-num { color: var(--warning); }
+  .stat-card.green .stat-num { color: var(--success); }
+  .stat-card.blue .stat-num { color: var(--info); }
+
+  /* ─── Form ─── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group label .req { color: var(--sharp-red); }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: #FAFAFA;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--sharp-red);
+    box-shadow: 0 0 0 3px rgba(204,0,0,0.08);
+    background: #FFF;
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.2px;
+  }
+  .btn-primary {
+    background: var(--sharp-red);
+    color: #FFF;
+  }
+  .btn-primary:hover { background: #AA0000; transform: translateY(-1px); }
+  .btn-secondary {
+    background: #F3F4F6;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: #E5E7EB; }
+  .btn-success {
+    background: var(--success);
+    color: #FFF;
+  }
+  .btn-success:hover { background: #047857; }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ─── Source type toggle ─── */
+  .source-toggle {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .source-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    background: #FAFAFA;
+  }
+  .source-opt input { display: none; }
+  .source-opt:has(input:checked) {
+    border-color: var(--info);
+    background: #EFF6FF;
+    color: var(--info);
+    font-weight: 600;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ─── Table ─── */
+  .table-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    background: #FAFAFA;
+    outline: none;
+  }
+  .search-box:focus { border-color: var(--sharp-red); }
+  .filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    background: #FAFAFA;
+    outline: none;
+    cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--sharp-red); }
+
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    min-width: 900px;
+  }
+  thead th {
+    background: #F8F9FC;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid #F3F4F6;
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: #FAFBFF; }
+  tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+  .id-cell {
+    font-weight: 700;
+    color: var(--sharp-red);
+    font-size: 11px;
+  }
+  .empty-row td {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ─── Status Badges ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.8;
+  }
+  .badge-pending   { background: #FEF3C7; color: #92400E; }
+  .badge-received  { background: #DBEAFE; color: #1E40AF; }
+  .badge-checking  { background: #EDE9FE; color: #5B21B6; }
+  .badge-working   { background: #FED7AA; color: #92400E; }
+  .badge-fixing    { background: #FEE2E2; color: #991B1B; }
+  .badge-done      { background: #D1FAE5; color: #065F46; }
+  .badge-closed    { background: #F3F4F6; color: #374151; }
+
+  .source-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .source-user   { background: #DBEAFE; color: #1E40AF; }
+  .source-myq    { background: #FEE2E2; color: #991B1B; }
+  .source-network{ background: #D1FAE5; color: #065F46; }
+  .source-other  { background: #F3F4F6; color: #374151; }
+
+  /* ─── Update Status Modal ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 28px;
+    width: 480px;
+    max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: fadeUp 0.2s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-title span { color: var(--sharp-red); }
+  .modal-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 0 4px;
+  }
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .status-option {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .status-option:hover { border-color: var(--sharp-red); background: #FFF5F5; }
+  .status-option.selected { border-color: var(--sharp-red); background: #FFF5F5; font-weight: 700; }
+
+  /* ─── Summary / Charts ─── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chart-wrap { position: relative; width: 100%; }
+
+  .month-filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .month-filter-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ─── Timeline ─── */
+  .timeline { padding: 8px 0; }
+  .tl-item {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #F3F4F6;
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .tl-info { flex: 1; }
+  .tl-main { font-size: 12.5px; font-weight: 600; }
+  .tl-sub { font-size: 11px; color: var(--muted); }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-header p { font-size: 12px; color: var(--muted); }
+
+  .tag {
+    display: inline-block;
+    background: #F3F4F6;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: monospace;
+  }
+
+  .action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: var(--sharp-red); color: var(--sharp-red); }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 11px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .header-inner { flex-wrap: wrap; }
+    .main { padding: 14px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .progress-bar-wrap {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-bar { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+  /* ─── Note History ─── */
+  .note-history {
+    background: #F8F9FC;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .note-history-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .note-item {
+    border-left: 3px solid #E0E4EF;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: #FFF;
+    border-radius: 0 6px 6px 0;
+  }
+  .note-item:last-child { margin-bottom: 0; }
+  .note-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .note-time { font-size: 10px; color: var(--muted); }
+  .note-status-tag {
+    font-size: 10px;
+    background: #DBEAFE;
+    color: #1E40AF;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .note-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+  .note-empty { font-size: 12px; color: var(--muted); text-align: center; padding: 8px 0; }
+
+  /* ─── Expandable note row ─── */
+  .expand-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--info);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .expand-btn:hover { background: #EFF6FF; border-color: var(--info); }
+  .note-row td {
+    background: #F0F4FF;
+    padding: 0 !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .note-row-inner {
+    padding: 12px 20px 12px 36px;
+    display: none;
+  }
+  .note-row-inner.open { display: block; }
+  .note-row-item {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed #D0D5E8;
+    font-size: 12px;
+    align-items: flex-start;
+  }
+  .note-row-item:last-child { border-bottom: none; }
+  .note-row-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--sharp-red);
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .note-row-time { color: var(--muted); font-size: 10px; white-space: nowrap; min-width: 120px; }
+  .note-row-badge {
+    font-size: 10px;
+    background: #DBEAFE;
+    color: #1E40AF;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .note-row-text { color: var(--text); flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-group">
+      <div class="logo-box" id="sharpLogoBox" onclick="document.getElementById('sharpLogoInput').click()" title="คลิกเพื่ออัปโหลดโลโก้ Sharp">
+        <div class="logo-placeholder" id="sharpDefault">
+          <span class="brand">SHARP</span>
+          <span class="sub">Electronics</span>
+        </div>
+        <img id="sharpLogoImg" class="logo-img" style="display:none" alt="Sharp Logo">
+      </div>
+      <div class="logo-divider"></div>
+      <div class="logo-box" id="fujiLogoBox" onclick="document.getElementById('fujiLogoInput').click()" title="คลิกเพื่ออัปโหลดโลโก้ Fujiseal">
+        <div class="logo-placeholder" id="fujiDefault">
+          <span class="brand" style="font-size:14px">FUJISEAL</span>
+          <span class="sub">International</span>
+        </div>
+        <img id="fujiLogoImg" class="logo-img" style="display:none" alt="Fujiseal Logo">
+      </div>
+      <input type="file" id="sharpLogoInput" accept="image/*" style="display:none">
+      <input type="file" id="fujiLogoInput" accept="image/*" style="display:none">
+    </div>
+    <div class="header-title">
+      <h1>🖨️ Printer Repair Management</h1>
+      <p>ระบบติดตามการแจ้งซ่อม Sharp Printer · Fujiseal Thailand</p>
+    </div>
+    <div class="header-badge" id="liveClock">—</div>
+  </div>
+</header>
+
+<!-- ─── NAV ─── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="tab-btn active" onclick="switchTab('report')">
+      <span class="tab-icon">📋</span> แจ้งซ่อม
+    </button>
+    <button class="tab-btn" onclick="switchTab('list')">
+      <span class="tab-icon">📂</span> รายการซ่อม
+    </button>
+    <button class="tab-btn" onclick="switchTab('summary')">
+      <span class="tab-icon">📊</span> สรุปผล & กราฟ
+    </button>
+    <button class="tab-btn" onclick="switchTab('guide')">
+      <span class="tab-icon">📖</span> คู่มือสถานะ
+    </button>
+  </div>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+
+  <!-- ══════════ TAB 1: FORM ══════════ -->
+  <section id="tab-report" class="section active">
+    <div class="section-header">
+      <div>
+        <h2>แจ้งซ่อม Printer</h2>
+        <p>กรอกข้อมูลให้ครบถ้วนก่อนส่งแจ้งซ่อม</p>
+      </div>
+      <span id="reportIdPreview" style="font-size:13px; color:var(--sharp-red); font-weight:700"></span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ข้อมูลผู้แจ้ง</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ชื่อผู้แจ้ง <span class="req">*</span></label>
+          <input type="text" id="f_reporter" placeholder="ชื่อ-นามสกุล">
+        </div>
+        <div class="form-group">
+          <label>Site <span class="req">*</span></label>
+          <select id="f_site">
+            <option value="">— เลือก Site —</option>
+            <option value="BP">🏭 บางปู (BP)</option>
+            <option value="SSK">🏭 สินสาคร (SSK)</option>
+            <option value="HO">🏢 พญาไท / Head Office (HO)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>แผนก <span class="req">*</span></label>
+          <select id="f_dept">
+            <option value="">— เลือกแผนก —</option>
+            <option>IT / MIS</option>
+            <option>Production</option>
+            <option>QC / QA</option>
+            <option>Warehouse / Logistics</option>
+            <option>Accounting / Finance</option>
+            <option>HR / Admin</option>
+            <option>Engineering</option>
+            <option>Purchasing</option>
+            <option>Sales / Marketing</option>
+            <option>Management</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>วันที่แจ้ง <span class="req">*</span></label>
+          <input type="date" id="f_date">
+        </div>
+        <div class="form-group">
+          <label>เวลาที่แจ้ง <span class="req">*</span></label>
+          <input type="time" id="f_time">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ข้อมูล Printer</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>รุ่น Printer (Model)</label>
+          <select id="f_model">
+            <option value="">— เลือกรุ่น —</option>
+            <optgroup label="MX Series (Color MFP)">
+              <option>MX-2651</option>
+              <option>MX-3051</option>
+              <option>MX-3061</option>
+              <option>MX-3551</option>
+              <option>MX-4051</option>
+              <option>MX-5051</option>
+              <option>MX-6051</option>
+              <option>MX-M2651</option>
+              <option>MX-M3051</option>
+              <option>MX-M5050</option>
+              <option>MX-M6050</option>
+            </optgroup>
+            <optgroup label="BP Series">
+              <option>BP-30C25</option>
+              <option>BP-30C25T</option>
+              <option>BP-50C26</option>
+              <option>BP-50C45</option>
+              <option>BP-51C36</option>
+              <option>BP-51C45</option>
+              <option>BP-70C45</option>
+            </optgroup>
+            <optgroup label="AR Series">
+              <option>AR-6020</option>
+              <option>AR-6023</option>
+              <option>AR-6026</option>
+            </optgroup>
+            <option>อื่นๆ (ระบุใน Description)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Serial Number</label>
+          <input type="text" id="f_serial" placeholder="เช่น 8501234567">
+        </div>
+        <div class="form-group">
+          <label>Error Code (ถ้ามี)</label>
+          <input type="text" id="f_errcode" placeholder="เช่น E7-11, L4-00">
+        </div>
+        <div class="form-group">
+          <label>สาเหตุที่เป็นไปได้ <span class="req">*</span></label>
+          <select id="f_cause">
+            <option value="">— เลือกสาเหตุ —</option>
+            <optgroup label="ปัญหาจาก User">
+              <option value="user-paper">กระดาษติด / Paper Jam</option>
+              <option value="user-toner">หมึกหมด / Low Toner</option>
+              <option value="user-config">ตั้งค่าผิด / Wrong Setting</option>
+              <option value="user-driver">Driver มีปัญหา</option>
+              <option value="user-usage">ใช้งานผิดวิธี</option>
+            </optgroup>
+            <optgroup label="ปัญหาจาก MyQ Server">
+              <option value="myq-connect">เชื่อมต่อ MyQ ไม่ได้</option>
+              <option value="myq-auth">Login/Authentication ล้มเหลว</option>
+              <option value="myq-queue">Print Queue ค้าง</option>
+              <option value="myq-policy">Policy ผิดพลาด</option>
+              <option value="myq-license">License หมดอายุ</option>
+            </optgroup>
+            <optgroup label="ปัญหาฮาร์ดแวร์">
+              <option value="hw-sensor">Sensor เสีย</option>
+              <option value="hw-fuser">Fuser Unit เสีย</option>
+              <option value="hw-drum">Drum ชำรุด</option>
+              <option value="hw-motor">มอเตอร์ขัดข้อง</option>
+              <option value="hw-board">Board/PCB เสีย</option>
+            </optgroup>
+            <optgroup label="ปัญหาเครือข่าย">
+              <option value="net-ip">IP Address ผิด/ซ้ำ</option>
+              <option value="net-offline">Printer Offline</option>
+              <option value="net-scan">Scan to Folder/Email ไม่ได้</option>
+            </optgroup>
+            <option value="other">อื่นๆ</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>แหล่งที่มาของปัญหา <span class="req">*</span></label>
+          <div class="source-toggle">
+            <label class="source-opt">
+              <input type="radio" name="f_source" value="user" checked>
+              <div class="dot"></div> User / ผู้ใช้งาน
+            </label>
+            <label class="source-opt">
+              <input type="radio" name="f_source" value="myq">
+              <div class="dot" style="color:var(--danger)"></div> MyQ Server
+            </label>
+            <label class="source-opt">
+              <input type="radio" name="f_source" value="network">
+              <div class="dot" style="color:var(--success)"></div> Network
+            </label>
+            <label class="source-opt">
+              <input type="radio" name="f_source" value="hardware">
+              <div class="dot" style="color:var(--warning)"></div> Hardware
+            </label>
+            <label class="source-opt">
+              <input type="radio" name="f_source" value="other">
+              <div class="dot" style="color:var(--muted)"></div> อื่นๆ
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>คำอธิบายอาการ (Description) <span class="req">*</span></label>
+          <textarea id="f_desc" placeholder="อธิบายอาการที่พบโดยละเอียด เช่น พิมพ์แล้วกระดาษไม่ออก แสดง Error Code E7-11..."></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="submitRepair()">
+          ✅ บันทึกแจ้งซ่อม
+        </button>
+        <button class="btn btn-secondary" onclick="clearForm()">
+          🗑️ ล้างข้อมูล
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ TAB 2: LIST ══════════ -->
+  <section id="tab-list" class="section">
+    <div class="section-header">
+      <div>
+        <h2>รายการแจ้งซ่อมทั้งหมด</h2>
+        <p id="listCount">ทั้งหมด 0 รายการ</p>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="cleanCorruptData()" style="color:var(--danger); border-color:var(--danger)">🧹 ล้างข้อมูลเสีย</button>
+        <button class="btn btn-secondary" onclick="exportCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-success" onclick="exportExcel()">📊 Export Excel</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="listStats">
+      <div class="stat-card red"><div class="stat-num" id="s_total">0</div><div class="stat-label">ทั้งหมด</div></div>
+      <div class="stat-card amber"><div class="stat-num" id="s_open">0</div><div class="stat-label">กำลังดำเนินการ</div></div>
+      <div class="stat-card green"><div class="stat-num" id="s_done">0</div><div class="stat-label">เสร็จสิ้น</div></div>
+      <div class="stat-card blue"><div class="stat-num" id="s_today">0</div><div class="stat-label">วันนี้</div></div>
+    </div>
+
+    <div class="card">
+      <div class="table-toolbar">
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 ค้นหา ID, Serial, แผนก, Model..." oninput="renderTable()">
+        <select class="filter-select" id="filterSite" onchange="renderTable()">
+          <option value="">ทุก Site</option>
+          <option value="BP">บางปู (BP)</option>
+          <option value="SSK">สินสาคร (SSK)</option>
+          <option value="HO">พญาไท (HO)</option>
+        </select>
+        <select class="filter-select" id="filterStatus" onchange="renderTable()">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="รอรับเคส">รอรับเคส</option>
+          <option value="กำลังรับเคส">กำลังรับเคส</option>
+          <option value="กำลังตรวจสอบ">กำลังตรวจสอบ</option>
+          <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+          <option value="กำลังแก้ไข">กำลังแก้ไข</option>
+          <option value="แก้ไขแล้ว รอตรวจสอบ">แก้ไขแล้ว รอตรวจสอบ</option>
+          <option value="ปิดงานเสร็จสิ้น">ปิดงานเสร็จสิ้น</option>
+        </select>
+        <select class="filter-select" id="filterDept" onchange="renderTable()">
+          <option value="">แผนกทั้งหมด</option>
+        </select>
+        <select class="filter-select" id="filterMonth" onchange="renderTable()">
+          <option value="">เดือนทั้งหมด</option>
+        </select>
+        <select class="filter-select" id="filterSource" onchange="renderTable()">
+          <option value="">แหล่งปัญหาทั้งหมด</option>
+          <option value="user">User</option>
+          <option value="myq">MyQ Server</option>
+          <option value="network">Network</option>
+          <option value="hardware">Hardware</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table id="repairTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Site</th>
+              <th>วันที่แจ้ง</th>
+              <th>แผนก</th>
+              <th>ผู้แจ้ง</th>
+              <th>Model</th>
+              <th>Serial</th>
+              <th>Error Code</th>
+              <th>แหล่งปัญหา</th>
+              <th>สาเหตุ</th>
+              <th>สถานะ</th>
+              <th>ปิดงาน</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr class="empty-row"><td colspan="13">ยังไม่มีรายการแจ้งซ่อม<br><span style="font-size:11px;color:var(--muted)">กรอกแบบฟอร์มแจ้งซ่อมเพื่อเพิ่มรายการ</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ TAB 3: SUMMARY ══════════ -->
+  <section id="tab-summary" class="section">
+    <div class="section-header">
+      <div>
+        <h2>สรุปผลการซ่อม</h2>
+        <p>วิเคราะห์ข้อมูล แนวโน้ม และสาเหตุ</p>
+      </div>
+    </div>
+
+    <div class="month-filter-row">
+      <span class="month-filter-label">กรองเดือน:</span>
+      <select class="filter-select" id="summaryMonth" onchange="renderCharts()">
+        <option value="">ทั้งหมด</option>
+      </select>
+      <select class="filter-select" id="summaryDept" onchange="renderCharts()">
+        <option value="">ทุกแผนก</option>
+      </select>
+      <button class="btn btn-secondary" onclick="renderCharts()">🔄 รีเฟรช</button>
+    </div>
+
+    <!-- KPI row -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+      <div class="stat-card red"><div class="stat-num" id="kpi_total">0</div><div class="stat-label">รายการทั้งหมด</div></div>
+      <div class="stat-card amber"><div class="stat-num" id="kpi_open">0</div><div class="stat-label">ยังไม่ปิดงาน</div></div>
+      <div class="stat-card green"><div class="stat-num" id="kpi_done">0</div><div class="stat-label">ปิดงานแล้ว</div></div>
+      <div class="stat-card blue"><div class="stat-num" id="kpi_myq">0</div><div class="stat-label">จาก MyQ Server</div></div>
+      <div class="stat-card" style="border-left: 3px solid #7C3AED;"><div class="stat-num" style="color:#7C3AED" id="kpi_user">0</div><div class="stat-label">จาก User</div></div>
+    </div>
+
+    <div class="summary-grid">
+      <!-- Chart 1: รายการต่อเดือน -->
+      <div class="chart-card" style="grid-column: 1 / -1;">
+        <div class="chart-title">📈 จำนวนแจ้งซ่อมรายเดือน</div>
+        <div class="chart-wrap" style="height: 220px;">
+          <canvas id="chartMonthly" role="img" aria-label="กราฟจำนวนแจ้งซ่อมรายเดือน">จำนวนแจ้งซ่อมแต่ละเดือน</canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: แผนกที่แจ้งมากสุด -->
+      <div class="chart-card">
+        <div class="chart-title">🏢 แผนกที่แจ้งซ่อม</div>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartDept" role="img" aria-label="กราฟแผนกที่แจ้งซ่อม">สัดส่วนการแจ้งซ่อมตามแผนก</canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: User vs MyQ -->
+      <div class="chart-card">
+        <div class="chart-title">🔍 แหล่งที่มาของปัญหา</div>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartSource" role="img" aria-label="กราฟแหล่งที่มาของปัญหา">สัดส่วนปัญหา User vs MyQ vs Network vs Hardware</canvas>
+        </div>
+      </div>
+
+      <!-- Chart 4: สาเหตุปัญหา -->
+      <div class="chart-card" style="grid-column: 1 / -1;">
+        <div class="chart-title">⚠️ สาเหตุที่พบบ่อย</div>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartCause" role="img" aria-label="กราฟสาเหตุที่พบบ่อย">สาเหตุการแจ้งซ่อมที่พบบ่อยที่สุด</canvas>
+        </div>
+      </div>
+
+      <!-- Top reporters -->
+      <div class="chart-card">
+        <div class="chart-title">👤 ผู้แจ้งบ่อย (Top 5)</div>
+        <div id="topReporters">
+          <p style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0">ยังไม่มีข้อมูล</p>
+        </div>
+      </div>
+
+      <!-- Status breakdown -->
+      <div class="chart-card">
+        <div class="chart-title">📋 สถานะปัจจุบัน</div>
+        <div id="statusBreakdown">
+          <p style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0">ยังไม่มีข้อมูล</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ TAB 4: GUIDE ══════════ -->
+  <section id="tab-guide" class="section">
+    <div class="section-header">
+      <div><h2>คู่มือสถานะการซ่อม</h2><p>Workflow และคำอธิบายสถานะแต่ละขั้น</p></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Workflow การซ่อม Sharp Printer</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#FEF3C7; color:#92400E;">1</div>
+          <div class="tl-info">
+            <div class="tl-main">🕐 รอรับเคส (Pending)</div>
+            <div class="tl-sub">รายการถูกสร้างแล้ว รอทีม IT รับเรื่อง</div>
+          </div>
+          <span class="badge badge-pending">รอรับเคส</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#DBEAFE; color:#1E40AF;">2</div>
+          <div class="tl-info">
+            <div class="tl-main">📥 กำลังรับเคส (Received)</div>
+            <div class="tl-sub">ทีม IT รับเรื่องแล้ว กำลังประสานงาน</div>
+          </div>
+          <span class="badge badge-received">กำลังรับเคส</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#EDE9FE; color:#5B21B6;">3</div>
+          <div class="tl-info">
+            <div class="tl-main">🔎 กำลังตรวจสอบ (Investigating)</div>
+            <div class="tl-sub">กำลังวิเคราะห์และหาสาเหตุของปัญหา</div>
+          </div>
+          <span class="badge badge-checking">กำลังตรวจสอบ</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#FED7AA; color:#92400E;">4</div>
+          <div class="tl-info">
+            <div class="tl-main">🔧 กำลังดำเนินการ (In Progress)</div>
+            <div class="tl-sub">เริ่มซ่อมหรือแก้ไขแล้ว</div>
+          </div>
+          <span class="badge badge-working">กำลังดำเนินการ</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#FEE2E2; color:#991B1B;">5</div>
+          <div class="tl-info">
+            <div class="tl-main">⚙️ กำลังแก้ไข (Fixing)</div>
+            <div class="tl-sub">แก้ไขอยู่ อาจต้องรอชิ้นส่วนหรือ Vendor</div>
+          </div>
+          <span class="badge badge-fixing">กำลังแก้ไข</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#D1FAE5; color:#065F46;">6</div>
+          <div class="tl-info">
+            <div class="tl-main">✅ แก้ไขแล้ว รอตรวจสอบ (Fixed - Pending Review)</div>
+            <div class="tl-sub">แก้เสร็จแล้ว รอผู้ใช้ยืนยันว่าใช้งานได้ปกติ</div>
+          </div>
+          <span class="badge badge-done">แก้ไขแล้ว รอตรวจสอบ</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#F3F4F6; color:#374151;">7</div>
+          <div class="tl-info">
+            <div class="tl-main">🏁 ปิดงานเสร็จสิ้น (Closed)</div>
+            <div class="tl-sub">งานสำเร็จสมบูรณ์ บันทึกเวลาปิดงานแล้ว</div>
+          </div>
+          <span class="badge badge-closed">ปิดงานเสร็จสิ้น</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">ประเภทแหล่งที่มาของปัญหา</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-top:4px;">
+        <div style="border:1px solid var(--border); border-radius:8px; padding:14px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px; color:#1E40AF;">👤 User</div>
+          <div style="font-size:12px; color:var(--muted);">ปัญหาที่เกิดจากผู้ใช้งาน เช่น กระดาษติด, ตั้งค่าผิด, Driver, การใช้งาน</div>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:8px; padding:14px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px; color:#991B1B;">🖥️ MyQ Server</div>
+          <div style="font-size:12px; color:var(--muted);">ปัญหาจากระบบ Print Management ของ Sharp เช่น Authentication, Policy, Queue</div>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:8px; padding:14px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px; color:#065F46;">🌐 Network</div>
+          <div style="font-size:12px; color:var(--muted);">ปัญหาเครือข่าย IP Address, Printer Offline, Scan to Folder/Email</div>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:8px; padding:14px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px; color:#92400E;">🔩 Hardware</div>
+          <div style="font-size:12px; color:var(--muted);">ปัญหาอุปกรณ์ฮาร์ดแวร์ Fuser, Drum, Sensor, Board</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── STATUS MODAL ─── -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal">
+    <div class="modal-title">
+      อัปเดตสถานะ <span id="modalId"></span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <!-- Note history -->
+    <div id="modalNoteHistory" class="note-history" style="display:none;">
+      <div class="note-history-title">📋 ประวัติหมายเหตุที่ผ่านมา</div>
+      <div id="modalNoteList"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>เลือกสถานะใหม่</label>
+      <div class="status-grid" id="statusGrid"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>หมายเหตุ / บันทึกการดำเนินงาน</label>
+      <textarea id="modalNote" placeholder="เช่น แก้ไขโดยการ reset MyQ credential ใช้เวลา 30 นาที / รอ Vendor ส่ง Fuser Unit / ยกเลิกเพราะผู้ใช้ตั้งค่าเองได้..." style="min-height:80px;"></textarea>
+    </div>
+    <div id="closeTimeGroup" style="display:none;">
+      <div class="form-grid" style="margin-bottom:12px;">
+        <div class="form-group">
+          <label>วันที่ปิดงาน</label>
+          <input type="date" id="closeDate">
+        </div>
+        <div class="form-group">
+          <label>เวลาที่ปิดงาน</label>
+          <input type="time" id="closeTime">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveStatus()">💾 บันทึก</button>
+      <button class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  Sharp Printer Repair Management · Fujiseal International (Thailand) · v2.0
+  <br>Data stored locally in browser · Export to Excel/CSV to backup
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+let repairs = JSON.parse(localStorage.getItem('sharpRepairs') || '[]');
+let nextId = parseInt(localStorage.getItem('sharpNextId') || '1');
+let editingId = null;
+
+const STATUSES = [
+  { key: 'รอรับเคส',           cls: 'badge-pending',  label: '🕐 รอรับเคส' },
+  { key: 'กำลังรับเคส',        cls: 'badge-received', label: '📥 กำลังรับเคส' },
+  { key: 'กำลังตรวจสอบ',       cls: 'badge-checking', label: '🔎 กำลังตรวจสอบ' },
+  { key: 'กำลังดำเนินการ',     cls: 'badge-working',  label: '🔧 กำลังดำเนินการ' },
+  { key: 'กำลังแก้ไข',         cls: 'badge-fixing',   label: '⚙️ กำลังแก้ไข' },
+  { key: 'แก้ไขแล้ว รอตรวจสอบ', cls: 'badge-done',    label: '✅ แก้ไขแล้ว รอตรวจสอบ' },
+  { key: 'ปิดงานเสร็จสิ้น',    cls: 'badge-closed',   label: '🏁 ปิดงานเสร็จสิ้น' },
+];
+
+const SOURCE_MAP = {
+  user:     { label: 'User',       cls: 'source-user' },
+  myq:      { label: 'MyQ Server', cls: 'source-myq' },
+  network:  { label: 'Network',    cls: 'source-network' },
+  hardware: { label: 'Hardware',   cls: 'source-other' },
+  other:    { label: 'อื่นๆ',      cls: 'source-other' },
+};
+
+const CAUSE_MAP = {
+  'user-paper':'กระดาษติด', 'user-toner':'หมึกหมด', 'user-config':'ตั้งค่าผิด',
+  'user-driver':'Driver', 'user-usage':'ใช้งานผิดวิธี',
+  'myq-connect':'MyQ เชื่อมต่อไม่ได้', 'myq-auth':'MyQ Auth ล้มเหลว',
+  'myq-queue':'Print Queue ค้าง', 'myq-policy':'Policy ผิดพลาด', 'myq-license':'MyQ License หมด',
+  'hw-sensor':'Sensor เสีย', 'hw-fuser':'Fuser Unit', 'hw-drum':'Drum ชำรุด',
+  'hw-motor':'มอเตอร์', 'hw-board':'Board/PCB เสีย',
+  'net-ip':'IP Address', 'net-offline':'Printer Offline', 'net-scan':'Scan ไม่ได้',
+  other: 'อื่นๆ',
+};
+
+const MONTH_NAMES = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                     'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function save() {
+  localStorage.setItem('sharpRepairs', JSON.stringify(repairs));
+  localStorage.setItem('sharpNextId', nextId);
+}
+
+// ─── CLOCK ──────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('liveClock').textContent =
+    now.toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'numeric' }) +
+    ' ' + now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ─── LOGO UPLOAD ─────────────────────────────────────────
+['sharp','fuji'].forEach(brand => {
+  document.getElementById(brand + 'LogoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById(brand + 'Default').style.display = 'none';
+      const img = document.getElementById(brand + 'LogoImg');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      localStorage.setItem(brand + 'Logo', ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  const saved = localStorage.getItem(brand + 'Logo');
+  if (saved) {
+    document.getElementById(brand + 'Default').style.display = 'none';
+    const img = document.getElementById(brand + 'LogoImg');
+    img.src = saved; img.style.display = 'block';
+  }
+});
+
+// ─── TABS ────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'list') { renderTable(); updateStats(); }
+  if (name === 'summary') { renderCharts(); }
+}
+
+// ─── ID GENERATOR ────────────────────────────────────────
+// Format: FSI-[SITE]-[YY][MM]-[SEQ3]
+// e.g. FSI-BP-2506-001
+function generateId(site) {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const monthKey = yy + mm;
+  const siteCode = site || 'XX';
+
+  // Per-site per-month sequence stored separately
+  const seqKey = 'sharpSeq_' + siteCode + '_' + monthKey;
+  let seq = parseInt(localStorage.getItem(seqKey) || '0') + 1;
+  localStorage.setItem(seqKey, seq);
+
+  return `FSI-${siteCode}-${monthKey}-${String(seq).padStart(3, '0')}`;
+}
+
+function getIdPreview(site) {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const monthKey = yy + mm;
+  const siteCode = site || 'XX';
+  const seqKey = 'sharpSeq_' + siteCode + '_' + monthKey;
+  const seq = parseInt(localStorage.getItem(seqKey) || '0') + 1;
+  return `FSI-${siteCode}-${monthKey}-${String(seq).padStart(3, '0')}`;
+}
+
+// ─── FORM ────────────────────────────────────────────────
+function initForm() {
+  const now = new Date();
+  document.getElementById('f_date').value = now.toISOString().slice(0, 10);
+  document.getElementById('f_time').value = now.toTimeString().slice(0, 5);
+  const site = document.getElementById('f_site')?.value || '';
+  document.getElementById('reportIdPreview').textContent =
+    'ID ที่จะได้: ' + getIdPreview(site);
+}
+initForm();
+
+// Update ID preview when site changes
+document.getElementById('f_site').addEventListener('change', initForm);
+
+function clearForm() {
+  ['f_reporter','f_site','f_dept','f_model','f_serial','f_errcode','f_desc','f_cause'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelector('input[name="f_source"][value="user"]').checked = true;
+  initForm();
+}
+
+function submitRepair() {
+  const required = { f_reporter:'ชื่อผู้แจ้ง', f_site:'Site', f_dept:'แผนก', f_date:'วันที่', f_time:'เวลา',
+                     f_desc:'คำอธิบาย', f_cause:'สาเหตุ' };
+  for (const [id, label] of Object.entries(required)) {
+    if (!document.getElementById(id).value.trim()) {
+      alert('กรุณากรอก: ' + label);
+      document.getElementById(id).focus();
+      return;
+    }
+  }
+  const source = document.querySelector('input[name="f_source"]:checked').value;
+  const causeVal = document.getElementById('f_cause').value;
+  const siteVal = document.getElementById('f_site').value;
+  const newId = generateId(siteVal);
+  const record = {
+    id: newId,
+    reportDate: document.getElementById('f_date').value,
+    reportTime: document.getElementById('f_time').value,
+    reporter: document.getElementById('f_reporter').value.trim(),
+    site: siteVal,
+    dept: document.getElementById('f_dept').value,
+    model: document.getElementById('f_model').value,
+    serial: document.getElementById('f_serial').value.trim(),
+    errCode: document.getElementById('f_errcode').value.trim(),
+    source: source,
+    cause: causeVal,
+    desc: document.getElementById('f_desc').value.trim(),
+    status: 'รอรับเคส',
+    closeDate: '',
+    closeTime: '',
+    notes: [],
+    createdAt: new Date().toISOString(),
+  };
+  repairs.unshift(record);
+  save();
+  clearForm();
+  alert('✅ บันทึกแจ้งซ่อมสำเร็จ!\nรหัส: ' + record.id);
+  updateStats();
+  populateFilters();
+}
+
+// ─── STATS ───────────────────────────────────────────────
+function updateStats() {
+  const today = new Date().toISOString().slice(0, 10);
+  const open = repairs.filter(r => r.status !== 'ปิดงานเสร็จสิ้น').length;
+  const done = repairs.filter(r => r.status === 'ปิดงานเสร็จสิ้น').length;
+  const todayCount = repairs.filter(r => r.reportDate === today).length;
+  document.getElementById('s_total').textContent = repairs.length;
+  document.getElementById('s_open').textContent = open;
+  document.getElementById('s_done').textContent = done;
+  document.getElementById('s_today').textContent = todayCount;
+  document.getElementById('listCount').textContent = `ทั้งหมด ${repairs.length} รายการ`;
+}
+
+// ─── FILTERS ─────────────────────────────────────────────
+function populateFilters() {
+  const depts = [...new Set(repairs.map(r => r.dept).filter(Boolean))].sort();
+  const months = [...new Set(repairs.map(r => {
+    const d = new Date(r.reportDate);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }).filter(Boolean))].sort().reverse();
+
+  ['filterDept','summaryDept'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${id.includes('summary') ? 'ทุกแผนก' : 'แผนกทั้งหมด'}</option>`;
+    depts.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+    sel.value = cur;
+  });
+
+  ['filterMonth','summaryMonth'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${id.includes('summary') ? 'ทั้งหมด' : 'เดือนทั้งหมด'}</option>`;
+    months.forEach(m => {
+      const [y, mo] = m.split('-');
+      sel.innerHTML += `<option value="${m}">${MONTH_NAMES[parseInt(mo)]} ${parseInt(y)+543}</option>`;
+    });
+    sel.value = cur;
+  });
+}
+
+// ─── TABLE ───────────────────────────────────────────────
+function getBadgeClass(status) {
+  const s = STATUSES.find(x => x.key === status);
+  return s ? s.cls : 'badge-pending';
+}
+
+const SITE_MAP = {
+  BP:  { label: 'บางปู',   short: 'BP',  color: '#1E40AF', bg: '#DBEAFE' },
+  SSK: { label: 'สินสาคร', short: 'SSK', color: '#065F46', bg: '#D1FAE5' },
+  HO:  { label: 'พญาไท',   short: 'HO',  color: '#5B21B6', bg: '#EDE9FE' },
+};
+
+function siteBadge(site) {
+  const s = SITE_MAP[site];
+  if (!s) return site ? `<span style="font-size:11px">${site}</span>` : '—';
+  return `<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:${s.bg};color:${s.color}">${s.short}</span>`;
+}
+
+function renderTable() {
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const fSite   = document.getElementById('filterSite').value;
+  const fStatus = document.getElementById('filterStatus').value;
+  const fDept   = document.getElementById('filterDept').value;
+  const fMonth  = document.getElementById('filterMonth').value;
+  const fSrc    = document.getElementById('filterSource').value;
+
+  const filtered = repairs.filter(r => {
+    if (fSite && r.site !== fSite) return false;
+    if (fStatus && r.status !== fStatus) return false;
+    if (fDept && r.dept !== fDept) return false;
+    if (fSrc && r.source !== fSrc) return false;
+    if (fMonth) {
+      const d = new Date(r.reportDate);
+      const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (m !== fMonth) return false;
+    }
+    if (search) {
+      const hay = [r.id, r.serial, r.dept, r.model, r.reporter, r.desc, r.errCode, r.site].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const tb = document.getElementById('tableBody');
+  if (!filtered.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="13">ไม่พบรายการที่ตรงกับการค้นหา</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = filtered.map(r => {
+    const src = SOURCE_MAP[r.source] || SOURCE_MAP.other;
+    const causeLabel = CAUSE_MAP[r.cause] || r.cause || '—';
+    const closeInfo = r.closeDate ? `${r.closeDate}<br><span style="color:var(--muted);font-size:10px">${r.closeTime||''}</span>` : '—';
+    const notes = r.notes || [];
+    const noteBtn = notes.length
+      ? `<button class="expand-btn" onclick="toggleNotes('${r.id}')">💬 ${notes.length} หมายเหตุ</button>`
+      : `<button class="expand-btn" style="color:var(--muted)" onclick="openModal('${r.id}')">+ เพิ่มหมายเหตุ</button>`;
+    const notesHtml = notes.map(n => {
+      const dt = new Date(n.time);
+      const dateStr = dt.toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'2-digit' });
+      const timeStr = dt.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+      return `<div class="note-row-item">
+        <div class="note-row-dot"></div>
+        <span class="note-row-time">${dateStr} ${timeStr}</span>
+        <span class="note-row-badge">${n.status || ''}</span>
+        <span class="note-row-text">${n.note}</span>
+      </div>`;
+    }).join('');
+    return `<tr>
+      <td><span class="id-cell">${r.id}</span></td>
+      <td style="text-align:center">${siteBadge(r.site)}</td>
+      <td>${r.reportDate}<br><span style="color:var(--muted);font-size:10px">${r.reportTime||''}</span></td>
+      <td>${r.dept}</td>
+      <td>${r.reporter}</td>
+      <td><span class="tag">${r.model||'—'}</span></td>
+      <td style="font-family:monospace;font-size:11px">${r.serial||'—'}</td>
+      <td>${r.errCode ? `<span class="tag">${r.errCode}</span>` : '—'}</td>
+      <td><span class="source-badge ${src.cls}">${src.label}</span></td>
+      <td style="font-size:11px;max-width:100px">${causeLabel}</td>
+      <td><span class="badge ${getBadgeClass(r.status)}">${r.status}</span></td>
+      <td style="font-size:11px">${closeInfo}</td>
+      <td>
+        <button class="action-btn" onclick="openModal('${r.id}')">✏️ สถานะ</button>
+        <button class="action-btn" onclick="deleteRepair('${r.id}')" style="color:var(--danger)">🗑️</button>
+      </td>
+    </tr>
+    <tr class="note-row" id="note-row-${r.id}">
+      <td colspan="12">
+        <div class="note-row-inner" id="note-inner-${r.id}">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">📝 ประวัติหมายเหตุ / บันทึกการดำเนินงาน</div>
+          ${notesHtml || '<div style="font-size:12px;color:var(--muted);padding:6px 0">ยังไม่มีหมายเหตุ</div>'}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── MODAL ───────────────────────────────────────────────
+function openModal(id) {
+  editingId = id;
+  const r = repairs.find(x => x.id === id);
+  document.getElementById('modalId').textContent = id;
+  document.getElementById('modalNote').value = '';
+  const now = new Date();
+  document.getElementById('closeDate').value = now.toISOString().slice(0,10);
+  document.getElementById('closeTime').value = now.toTimeString().slice(0,5);
+
+  // Render note history
+  const notes = r.notes || [];
+  const histBox = document.getElementById('modalNoteHistory');
+  const histList = document.getElementById('modalNoteList');
+  if (notes.length) {
+    histBox.style.display = 'block';
+    histList.innerHTML = notes.slice().reverse().map(n => {
+      const dt = new Date(n.time);
+      const dateStr = dt.toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'2-digit' });
+      const timeStr = dt.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+      return `<div class="note-item">
+        <div class="note-meta">
+          <span class="note-time">🕐 ${dateStr} ${timeStr}</span>
+          ${n.status ? `<span class="note-status-tag">${n.status}</span>` : ''}
+        </div>
+        <div class="note-text">${n.note}</div>
+      </div>`;
+    }).join('');
+  } else {
+    histBox.style.display = 'none';
+  }
+
+  const grid = document.getElementById('statusGrid');
+  grid.innerHTML = STATUSES.map(s => `
+    <div class="status-option ${r.status === s.key ? 'selected' : ''}" onclick="selectStatus(this, '${s.key}')">
+      <span class="badge ${s.cls}" style="font-size:10px">${s.label}</span>
+    </div>`).join('');
+
+  document.getElementById('closeTimeGroup').style.display =
+    r.status === 'ปิดงานเสร็จสิ้น' ? 'block' : 'none';
+  document.getElementById('statusModal').classList.add('open');
+}
+
+function selectStatus(el, key) {
+  document.querySelectorAll('.status-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('closeTimeGroup').style.display =
+    key === 'ปิดงานเสร็จสิ้น' ? 'block' : 'none';
+}
+
+function saveStatus() {
+  const r = repairs.find(x => x.id === editingId);
+  const selected = document.querySelector('.status-option.selected');
+  if (!selected) { alert('กรุณาเลือกสถานะ'); return; }
+  const statusText = selected.querySelector('.badge').textContent.replace(/^[^\w\u0E00-\u0E7F]+/,'').trim();
+  const newStatus = STATUSES.find(s => selected.querySelector('.badge').className.includes(s.cls))?.key ||
+                    statusText;
+
+  // find key from badge class
+  const badgeEl = selected.querySelector('.badge');
+  let statusKey = '';
+  for (const s of STATUSES) {
+    if (badgeEl.classList.contains(s.cls)) { statusKey = s.key; break; }
+  }
+  if (!statusKey) statusKey = r.status;
+
+  r.status = statusKey;
+  const note = document.getElementById('modalNote').value.trim();
+  if (note) r.notes.push({ time: new Date().toISOString(), note, status: statusKey });
+
+  if (statusKey === 'ปิดงานเสร็จสิ้น') {
+    r.closeDate = document.getElementById('closeDate').value;
+    r.closeTime = document.getElementById('closeTime').value;
+  }
+
+  save();
+  closeModal();
+  renderTable();
+  updateStats();
+}
+
+function closeModal() {
+  document.getElementById('statusModal').classList.remove('open');
+  editingId = null;
+}
+
+function toggleNotes(id) {
+  const inner = document.getElementById('note-inner-' + id);
+  if (!inner) return;
+  inner.classList.toggle('open');
+}
+
+function deleteRepair(id) {
+  if (!confirm('ลบรายการ ' + id + ' ?')) return;
+  repairs = repairs.filter(x => x.id !== id);
+  save();
+  renderTable();
+  updateStats();
+}
+
+// ─── EXPORT ──────────────────────────────────────────────
+function getRows() {
+  return repairs.map(r => {
+    const notes = (r.notes || []);
+    const notesText = notes.map(n => {
+      const dt = new Date(n.time);
+      const dateStr = dt.toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'2-digit' });
+      const timeStr = dt.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+      return `[${dateStr} ${timeStr}] ${n.status ? '('+n.status+') ' : ''}${n.note}`;
+    }).join(' | ');
+    return {
+      'ID': r.id,
+      'Site': r.site ? (SITE_MAP[r.site]?.label || r.site) + ` (${r.site})` : '',
+      'วันที่แจ้ง': r.reportDate,
+      'เวลาแจ้ง': r.reportTime,
+      'แผนก': r.dept,
+      'ผู้แจ้ง': r.reporter,
+      'Model': r.model || '',
+      'Serial Number': r.serial || '',
+      'Error Code': r.errCode || '',
+      'แหล่งปัญหา': SOURCE_MAP[r.source]?.label || r.source,
+      'สาเหตุ': CAUSE_MAP[r.cause] || r.cause,
+      'คำอธิบายอาการ': r.desc,
+      'สถานะปัจจุบัน': r.status,
+      'วันที่ปิดงาน': r.closeDate || '',
+      'เวลาปิดงาน': r.closeTime || '',
+      'ประวัติหมายเหตุ': notesText,
+    };
+  });
+}
+
+function exportCSV() {
+  const rows = getRows();
+  if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
+  const headers = Object.keys(rows[0]);
+  const csv = '\uFEFF' + [headers.join(','), ...rows.map(r =>
+    headers.map(h => `"${(r[h]||'').toString().replace(/"/g,'""')}"`).join(',')
+  )].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = `sharp_repair_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportExcel() {
+  const rows = getRows();
+  if (!rows.length) { alert('ไม่มีข้อมูล'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = Object.keys(rows[0]).map(() => ({ wch: 18 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Repair Log');
+  XLSX.writeFile(wb, `sharp_repair_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ─── CHARTS ──────────────────────────────────────────────
+let charts = {};
+
+function renderCharts() {
+  const fMonth = document.getElementById('summaryMonth').value;
+  const fDept  = document.getElementById('summaryDept').value;
+
+  let data = repairs;
+  if (fDept) data = data.filter(r => r.dept === fDept);
+  if (fMonth) data = data.filter(r => {
+    const d = new Date(r.reportDate);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === fMonth;
+  });
+
+  // KPIs
+  document.getElementById('kpi_total').textContent = data.length;
+  document.getElementById('kpi_open').textContent  = data.filter(r => r.status !== 'ปิดงานเสร็จสิ้น').length;
+  document.getElementById('kpi_done').textContent  = data.filter(r => r.status === 'ปิดงานเสร็จสิ้น').length;
+  document.getElementById('kpi_myq').textContent   = data.filter(r => r.source === 'myq').length;
+  document.getElementById('kpi_user').textContent  = data.filter(r => r.source === 'user').length;
+
+  // ── Monthly bar
+  const monthlyMap = {};
+  data.forEach(r => {
+    const d = new Date(r.reportDate);
+    const key = `${MONTH_NAMES[d.getMonth()+1]} ${(d.getFullYear()+543).toString().slice(2)}`;
+    monthlyMap[key] = (monthlyMap[key] || 0) + 1;
+  });
+  const mLabels = Object.keys(monthlyMap);
+  const mVals   = Object.values(monthlyMap);
+  destroyChart('chartMonthly');
+  charts.monthly = new Chart(document.getElementById('chartMonthly'), {
+    type: 'bar',
+    data: {
+      labels: mLabels,
+      datasets: [{ label: 'รายการ', data: mVals, backgroundColor: '#CC0000CC', borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  // ── Dept doughnut
+  const deptMap = {};
+  data.forEach(r => { deptMap[r.dept] = (deptMap[r.dept] || 0) + 1; });
+  const dLabels = Object.keys(deptMap);
+  const dVals   = Object.values(deptMap);
+  const dColors = ['#CC0000','#003087','#059669','#D97706','#7C3AED','#2563EB','#DB2777','#0891B2','#65A30D','#EA580C'];
+  destroyChart('chartDept');
+  charts.dept = new Chart(document.getElementById('chartDept'), {
+    type: 'doughnut',
+    data: {
+      labels: dLabels,
+      datasets: [{ data: dVals, backgroundColor: dColors.slice(0, dLabels.length), borderWidth: 2, borderColor: '#FFF' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } } }
+    }
+  });
+
+  // ── Source pie
+  const srcMap = { user: 0, myq: 0, network: 0, hardware: 0, other: 0 };
+  data.forEach(r => { if (srcMap[r.source] !== undefined) srcMap[r.source]++; else srcMap.other++; });
+  const srcLabels = ['User', 'MyQ Server', 'Network', 'Hardware', 'อื่นๆ'];
+  const srcVals   = [srcMap.user, srcMap.myq, srcMap.network, srcMap.hardware, srcMap.other];
+  destroyChart('chartSource');
+  charts.source = new Chart(document.getElementById('chartSource'), {
+    type: 'pie',
+    data: {
+      labels: srcLabels,
+      datasets: [{ data: srcVals, backgroundColor: ['#2563EB','#DC2626','#059669','#D97706','#6B7280'], borderWidth: 2, borderColor: '#FFF' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } } }
+    }
+  });
+
+  // ── Cause horizontal bar
+  const causeMap = {};
+  data.forEach(r => {
+    const lbl = CAUSE_MAP[r.cause] || r.cause || 'ไม่ระบุ';
+    causeMap[lbl] = (causeMap[lbl] || 0) + 1;
+  });
+  const causeEntries = Object.entries(causeMap).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const cLabels = causeEntries.map(e => e[0]);
+  const cVals   = causeEntries.map(e => e[1]);
+  destroyChart('chartCause');
+  charts.cause = new Chart(document.getElementById('chartCause'), {
+    type: 'bar',
+    data: {
+      labels: cLabels,
+      datasets: [{ label: 'ครั้ง', data: cVals, backgroundColor: '#003087CC', borderRadius: 4 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  // ── Top reporters
+  const repMap = {};
+  data.forEach(r => { repMap[r.reporter] = (repMap[r.reporter] || 0) + 1; });
+  const topRep = Object.entries(repMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const maxRep = topRep[0]?.[1] || 1;
+  document.getElementById('topReporters').innerHTML = topRep.length ?
+    topRep.map(([name, cnt], i) => `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span>${i+1}. ${name}</span><span style="font-weight:700;color:var(--sharp-red)">${cnt} ครั้ง</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${Math.round(cnt/maxRep*100)}%;background:var(--sharp-red)"></div>
+        </div>
+      </div>`).join('') :
+    '<p style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">ยังไม่มีข้อมูล</p>';
+
+  // ── Status breakdown
+  const stMap = {};
+  data.forEach(r => { stMap[r.status] = (stMap[r.status] || 0) + 1; });
+  const stEntries = Object.entries(stMap);
+  const maxSt = stEntries.reduce((m,e) => Math.max(m,e[1]),1);
+  document.getElementById('statusBreakdown').innerHTML = stEntries.length ?
+    stEntries.map(([st, cnt]) => {
+      const s = STATUSES.find(x => x.key === st) || { cls: 'badge-pending' };
+      return `<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span class="badge ${s.cls}" style="font-size:10px">${st}</span>
+          <span style="font-weight:700">${cnt}</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${Math.round(cnt/maxSt*100)}%;background:#6B7280"></div>
+        </div>
+      </div>`;
+    }).join('') :
+    '<p style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">ยังไม่มีข้อมูล</p>';
+}
+
+function destroyChart(id) {
+  const key = id.replace('chart','').toLowerCase();
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+  // also try by element
+  const el = document.getElementById(id);
+  if (el) {
+    const existing = Chart.getChart(el);
+    if (existing) existing.destroy();
+  }
+}
+
+// ─── CLEAN CORRUPT DATA ──────────────────────────────────
+function isCorrupt(r) {
+  return !r || !r.id || r.id === 'undefined' ||
+         !r.reporter || r.reporter === 'undefined' ||
+         !r.dept || r.dept === 'undefined' ||
+         !r.reportDate || r.reportDate === 'undefined';
+}
+
+function autoClean() {
+  const before = repairs.length;
+  repairs = repairs.filter(r => !isCorrupt(r));
+  if (repairs.length !== before) {
+    save();
+    console.log(`Auto-cleaned ${before - repairs.length} corrupt records`);
+  }
+}
+
+function cleanCorruptData() {
+  const corrupt = repairs.filter(r => isCorrupt(r));
+  if (!corrupt.length) { alert('✅ ไม่พบข้อมูลเสีย ทุกรายการสมบูรณ์ดี'); return; }
+  if (!confirm(`พบข้อมูลเสีย ${corrupt.length} รายการ\nต้องการลบออกทั้งหมดใช่ไหม?`)) return;
+  repairs = repairs.filter(r => !isCorrupt(r));
+  save();
+  renderTable();
+  updateStats();
+  populateFilters();
+  alert(`✅ ลบข้อมูลเสีย ${corrupt.length} รายการแล้ว`);
+}
+
+// ─── INIT ────────────────────────────────────────────────
+autoClean();
+populateFilters();
+updateStats();
+
+// Add demo data if empty
+if (repairs.length === 0) {
+  const demo = [
+    { model:'MX-3551', serial:'8501234001', errCode:'E7-11', source:'myq', cause:'myq-auth', dept:'Production', reporter:'สมชาย ใจดี', status:'ปิดงานเสร็จสิ้น', closeDate:'2025-05-15', closeTime:'14:30', reportDate:'2025-05-14', reportTime:'09:15', desc:'Login MyQ ไม่ผ่าน พิมพ์ไม่ได้' },
+    { model:'MX-4051', serial:'8501234002', errCode:'', source:'user', cause:'user-paper', dept:'Accounting / Finance', reporter:'มาลี สุขสม', status:'ปิดงานเสร็จสิ้น', closeDate:'2025-05-20', closeTime:'11:00', reportDate:'2025-05-20', reportTime:'10:00', desc:'กระดาษติดซ้ำๆ ทุกวัน' },
+    { model:'MX-2651', serial:'8501234003', errCode:'L4-00', source:'hardware', cause:'hw-fuser', dept:'QC / QA', reporter:'วิชัย รักงาน', status:'กำลังแก้ไข', closeDate:'', closeTime:'', reportDate:'2025-06-01', reportTime:'08:30', desc:'Error L4-00 Fuser ร้อนเกิน' },
+    { model:'MX-3551', serial:'8501234004', errCode:'', source:'network', cause:'net-scan', dept:'HR / Admin', reporter:'สุดา แก้วใจ', status:'กำลังตรวจสอบ', closeDate:'', closeTime:'', reportDate:'2025-06-10', reportTime:'13:45', desc:'Scan to Email ส่งไม่ออก' },
+    { model:'BP-50C45', serial:'8501234005', errCode:'', source:'myq', cause:'myq-queue', dept:'IT / MIS', reporter:'ประสิทธิ์ ดีงาม', status:'รอรับเคส', closeDate:'', closeTime:'', reportDate:'2025-06-12', reportTime:'16:00', desc:'Print Queue ค้าง ลบไม่ออก' },
+  ];
+  demo.forEach(d => repairs.push({ ...d, id: 'RPR-' + String(nextId++).padStart(4,'0'), notes: [], createdAt: new Date().toISOString() }));
+  save();
+  populateFilters();
+  updateStats();
+}
+</script>
+</body>
+</html>
